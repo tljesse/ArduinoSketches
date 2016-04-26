@@ -5,7 +5,7 @@
 
 SoftwareSerial esp8266(5, 6);
 
-String espData[WAP_LENGTH][3];
+//String espData[WAP_LENGTH][3];
 
 void setup() {
   Serial.setTimeout(5000);
@@ -96,6 +96,7 @@ void loop() {
         Serial.print(espIncoming[dot++]);
       }
       //Serial.print(c);    */      
+      Serial.println(espIncoming);
     }
 
     for(int x = 0; x < WAP_LENGTH; x++) {
