@@ -79,7 +79,7 @@ void loop() {
     delay(1000);
    
     //Send new SMS command and message number
-    sendAndEcho("AT+CMGS=\"+19728548402\"");
+    sendAndEcho("AT+CMGS=\"xxxxxxxx\"");
     delay(1000);
      
     //Send SMS content
