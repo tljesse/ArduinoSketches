@@ -1,129 +1,91 @@
 #include<SoftwareSerial.h>
 #include <stdlib.h>
 
-#define WAP_LENGTH 10
+#define _SS_MAX_RX_BUFF 256
 
-SoftwareSerial esp8266(5, 6);
+#define TX_PIN 5
+#define RX_PIN 10
+#define CH_PD 13
 
-//String espData[WAP_LENGTH][3];
-String ssidData[WAP_LENGTH];
-String rssiData[WAP_LENGTH];
-String macData[WAP_LENGTH];
+#define DEBUG true
+                            
+char responseBuffer[600];
+
+SoftwareSerial esp8266(TX_PIN, RX_PIN);
 
 void setup() {
+  pinMode(CH_PD, OUTPUT);
+  digitalWrite(CH_PD, HIGH);
   Serial.setTimeout(5000);
-  Serial.begin(115200);
+  Serial.begin(9600);
   esp8266.begin(9600);
   delay(1000);
 }
 
 void loop() {
-  delay(2000);
-  String command="AT+CWLAP";
-  char espIncoming;
-  String ssid = "";
-  String rssi = "";
-  String mac = "";
-  float tester = -32.17459;
-  char outstr[15];
-  String dataString = "";
-  boolean firstRead = false;
-  boolean lastRead = false;
-  boolean rsiFirstRead = false;
-  boolean rsiLastRead = false;
-  boolean macFirstRead = false;
-  boolean macLastRead = false;
-  boolean contains = false;
-  int dot = 0;
 
-  for(int x = 0; x < WAP_LENGTH; x++) {
-    if (ssidData[x] == "") {
-      dot = x;
-      break;
-    }
+  sendData("AT+CWLAP\r\n",2000,DEBUG);
+  
+  if(esp8266.overflow()){
+    Serial.println("Soft Overflow");
   }
 
-  esp8266.println(command);
-  if(esp8266.available())
-  {
-    Serial.print("Reading: ");
-    while(esp8266.available())
-    {
-      char c = esp8266.read();
-      //Serial.write(c);
-      if(espIncoming == '(' && c != ')') {
-        if (firstRead && !lastRead) {
-          if (c == '\"') {
-            lastRead = true;
-            for (int x = 0; x < WAP_LENGTH; x++) {
-              if (ssidData[x] == ssid) {
-                contains = true;
-                dot = x;
-                break;
-              }
-            }
-            //if (!contains) {
-              //espData[dot][0] = ssid;  
-            //}
-          } else {
-            ssid += c;
-          }
-        }
-        if (c == '\"') firstRead = true;
-        if(lastRead) {
-          if (rsiFirstRead && !rsiLastRead){
-            if (c == ','){
-              rsiLastRead = true;
-              //espData[dot][1] = rssi;
-            } else {
-              rssi += c;
-            }
-          }
-          if (c == ',') rsiFirstRead = true;
-        }
-        if(rsiLastRead) {
-          if(macFirstRead && !macLastRead){
-            if (c == '\"'){
-              macLastRead = true;
-              ssidData[dot] = ssid;
-              rssiData[dot] = rssi;
-              macData[dot] = mac;
-            } else {
-              mac += c;
-            }
-          }
-          if (c == '\"') macFirstRead = true;
-        }
-      } else {
-        espIncoming = c;
-        firstRead = false;
-        lastRead = false;
-        rsiFirstRead = false;
-        rsiLastRead = false;
-        macFirstRead = false;
-        macLastRead = false;
-      }
-      /*if ( espIncoming == "+CWLAP:(" && espIncoming != ")" ){
-        Serial.print(espIncoming[dot++]);
-      }
-      //Serial.print(c);    */      
-      Serial.print(espIncoming);
-    }
+}
 
-    for (int x = 0; x < WAP_LENGTH; x++) {
-      if(ssidData[x] != "") {
-        //sprintf(dataString,"%s;%s,%s,%s;",dataString,ssidData[x],rssiData[x],macData[x]);
-        dataString += ssidData[x] + "," + rssiData[x] + "," + macData[x] + ";";
-      }
-    }
-    Serial.println();
-    Serial.println(dataString);
-    Serial.println(dtostrf(tester,2,3,outstr));
-    //dot++;
-    //Serial.print(espData);
-    Serial.println(ssid);
-    Serial.println(rssi);
-    Serial.println(mac);
-    Serial.println(" - ");
+void sendData(String command, const int timeout, boolean debug){
+  // Init array variables
+  int ndx = 0;
+  char rc = (char)0;
+  
+  // Clear array
+  memset(responseBuffer, 0, sizeof(responseBuffer));
+  
+  Serial.println("Command : " + command);
+  
+  // Send command to module
+  esp8266.print(command);
+  
+  // Record current time
+  long int time = millis();
+  
+  // Timeout
+  while(millis() - time < timeout){
+    while(esp8266.available() > 0){
+      rc = esp8266.read();
+      
+      responseBuffer[ndx] = rc;
+      ndx++;
+    }    
   }
+   
+  if(debug){
+    char* tokens;
+    
+    tokens = strtok(responseBuffer, "\"");
+    String espData[21];
+    
+    int counter = 0;
+    int index = 0;
+    while(tokens != NULL){
+      counter++;
+      if(strstr(tokens, "+CWLAP") == NULL && index < 21){
+        espData[index] = tokens;
+        index++;
+      }
+      counter % 2 == 0 ? tokens = strtok(NULL, "\"") : tokens = strtok(NULL, ",");
+    }
+    for(int x = 0; x < index-1; x++){
+      size_t nullTerm = espData[x].length();
+      espData[x][nullTerm - 1] = '\0';
+      String output;
+      output.reserve(espData[x].length());
+      for(size_t i = 0; i < espData[x].length(); ++i){
+        if(espData[x][i] != ':') output += espData[x][i];
+      }
+      espData[x] = output;
+      Serial.println(espData[x]);
+    }
+   
+  }
+   
 }
