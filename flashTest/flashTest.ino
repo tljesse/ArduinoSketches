@@ -15,14 +15,19 @@ CRGB leds[NUM_LEDS];
 void setup() {
   FastLED.addLeds<WS2812,DATA_PIN,GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
+<<<<<<< HEAD
   /*leds[0] = CRGB::White;
   FastLED.show();*/
+=======
+  leds[0] = CRGB::White;
+  FastLED.show();
+>>>>>>> da1ed1f622abb572e5188cf5326e5d040c8d305e
 
 }
 
 void loop() {
   
-  if (millis() - flashTime < 200) {
+  /*if (millis() - flashTime < 200) {
     for (int x = 0; x < 4; x++){
       x < 3 ? leds[x] = CRGB::Green : leds[x] = CRGB::Yellow;
       leds[x+4] = CRGB::Black;
@@ -34,7 +39,11 @@ void loop() {
     }
   } else {
     flashTime = millis();
+<<<<<<< HEAD
   }
+=======
+  }*/
+>>>>>>> da1ed1f622abb572e5188cf5326e5d040c8d305e
   
 
 }
