@@ -4,8 +4,8 @@
 
 #include "FastLED.h"
 
-#define DATA_PIN 2
-#define NUM_LEDS 8
+#define DATA_PIN 7
+#define NUM_LEDS 1
 #define BRIGHTNESS 48
 
 unsigned long flashTime = millis();
@@ -15,12 +15,14 @@ CRGB leds[NUM_LEDS];
 void setup() {
   FastLED.addLeds<WS2812,DATA_PIN,GRB>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
+  leds[0] = CRGB::White;
+  FastLED.show();
 
 }
 
 void loop() {
   
-  if (millis() - flashTime < 200) {
+  /*if (millis() - flashTime < 200) {
     for (int x = 0; x < 4; x++){
       x < 3 ? leds[x] = CRGB::Green : leds[x] = CRGB::Yellow;
       leds[x+4] = CRGB::Black;
@@ -32,7 +34,7 @@ void loop() {
     }
   } else {
     flashTime = millis();
-  }
-  FastLED.show();
+  }*/
+  
 
 }
