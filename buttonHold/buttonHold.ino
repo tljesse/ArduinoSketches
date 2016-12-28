@@ -1,3 +1,12 @@
+/*
+ * Monitors button presses and can tell between a short or
+ * long press, will run through a state machine depending 
+ * on type of press
+ * 
+ * Two buttons, both of which are run through interrupts
+ * which are only usable on Arduino pins 2 and 3
+ */
+
 #define SEL 3
 #define OPT 2
 
